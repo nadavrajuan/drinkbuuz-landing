@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp:*)",
+      "mcp__figma__get_design_context",
+      "mcp__figma__get_metadata",
+      "Bash(python3:*)",
+      "mcp__figma__get_screenshot",
+      "Bash(open:*)",
+      "WebSearch",
+      "WebFetch(domain:developers.pipedrive.com)",
+      "Bash(curl:*)",
+      "Bash(bash:*)"
+    ]
+  }
+}
