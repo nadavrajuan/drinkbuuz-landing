@@ -1,0 +1,30 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 98.84.6.90
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /app
+
+            # Pull latest code
+            sudo git config --global --add safe.directory /app
+            sudo git fetch origin master
+            sudo git reset --hard origin/master
+
+            # Rebuild and restart container
+            sudo docker compose up -d --build
+
+            # Confirm running
+            sudo docker ps --format 'table {{.Names}}\t{{.Status}}'
