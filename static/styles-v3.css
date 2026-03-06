@@ -716,6 +716,19 @@ a { text-decoration: none; color: inherit; }
   line-height: 1.55;
 }
 
+.wholesale-block {
+  margin-bottom: var(--s5);
+}
+.wholesale-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: var(--s1);
+}
+.wholesale-desc {
+  font-size: 0.875rem;
+  color: #555;
+}
+
 .perk-list {
   display: flex;
   flex-direction: column;
