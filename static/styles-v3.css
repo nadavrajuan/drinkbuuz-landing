@@ -885,6 +885,13 @@ a { text-decoration: none; color: inherit; }
   gap: var(--s4);
 }
 
+.signup-card p,
+.signup-card span,
+.signup-card label,
+.signup-card div {
+  color: #fff;
+}
+
 .signup-headline {
   font-family: 'Cormorant Garamond', serif;
   font-size: clamp(1.375rem, 4vw, 2rem);
@@ -944,8 +951,11 @@ a { text-decoration: none; color: inherit; }
 .footer-contact a:hover { opacity: 1; }
 
 .footer p,
-.footer a {
-  color: #fff;
+.footer a,
+.footer span,
+.footer address,
+.footer li {
+  color: #fff !important;
 }
 
 .footer-offices {
