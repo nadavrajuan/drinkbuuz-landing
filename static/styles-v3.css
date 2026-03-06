@@ -943,6 +943,11 @@ a { text-decoration: none; color: inherit; }
 }
 .footer-contact a:hover { opacity: 1; }
 
+.footer p,
+.footer a {
+  color: #fff;
+}
+
 .footer-offices {
   display: flex;
   flex-direction: column;
@@ -957,8 +962,9 @@ a { text-decoration: none; color: inherit; }
 }
 .office-name {
   font-weight: 600;
-  opacity: 1 !important;
-  margin-bottom: 2px !important;
+  color: #fff;
+  opacity: 1;
+  margin-bottom: 2px;
 }
 
 /* ══════════════════════════════════════════
