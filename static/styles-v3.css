@@ -887,8 +887,7 @@ a { text-decoration: none; color: inherit; }
 
 .signup-card p,
 .signup-card span,
-.signup-card label,
-.signup-card div {
+.signup-card label {
   color: #fff;
 }
 
@@ -939,23 +938,22 @@ a { text-decoration: none; color: inherit; }
   margin-bottom: var(--s5);
 }
 
+.footer,
+.footer p,
+.footer a,
+.footer span,
+.footer div,
+.footer address,
+.footer li {
+  color: #fff !important;
+}
+
 .footer-contact {
   margin-bottom: var(--s5);
 }
 .footer-contact a {
-  color: #fff;
   font-size: 0.875rem;
   text-decoration: none;
-  opacity: 0.8;
-}
-.footer-contact a:hover { opacity: 1; }
-
-.footer p,
-.footer a,
-.footer span,
-.footer address,
-.footer li {
-  color: #fff !important;
 }
 
 .footer-offices {
@@ -964,17 +962,22 @@ a { text-decoration: none; color: inherit; }
   gap: var(--s4);
 }
 .footer-office p {
-  color: #fff;
   font-size: 0.8125rem;
   line-height: 1.6;
-  opacity: 0.7;
   margin: 0;
+  opacity: 0.8;
 }
 .office-name {
   font-weight: 600;
-  color: #fff;
   opacity: 1;
   margin-bottom: 2px;
+}
+
+.pipedriveWebForms {
+  background: #fff;
+  border-radius: 8px;
+  padding: var(--s3);
+  margin-top: var(--s2);
 }
 
 /* ══════════════════════════════════════════
