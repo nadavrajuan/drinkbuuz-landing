@@ -939,12 +939,7 @@ a { text-decoration: none; color: inherit; }
 }
 
 .footer,
-.footer p,
-.footer a,
-.footer span,
-.footer div,
-.footer address,
-.footer li {
+.footer * {
   color: #fff !important;
 }
 
