@@ -23,25 +23,28 @@ jobs:
       - name: Validate index.html exists
         run: test -f index.html
 
-      - name: Upload static files to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: 98.84.6.90
-          username: ec2-user
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "index.html,styles.css,assets"
-          target: /var/www/drinkbuuz-dev
-          overwrite: true
-
-      - name: Fix permissions
+      - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: 98.84.6.90
           username: ec2-user
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo chown -R nginx:nginx /var/www/drinkbuuz-dev
-            echo "Deploy complete"
+            set -euo pipefail
+
+            sudo mkdir -p /var/www/drinkbuuz-dev
+            sudo chown ec2-user:ec2-user /var/www/drinkbuuz-dev
+
+            # Clone or pull dev branch
+            if [ ! -d /var/www/drinkbuuz-dev/.git ]; then
+              git clone --branch dev --single-branch https://github.com/nadavrajuan/drinkbuuz-landing.git /var/www/drinkbuuz-dev
+            else
+              cd /var/www/drinkbuuz-dev
+              git fetch origin dev
+              git reset --hard origin/dev
+            fi
+
+            echo "Static files deployed to /var/www/drinkbuuz-dev"
 
       - name: Health check
         run: |
