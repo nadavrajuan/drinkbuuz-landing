@@ -20,60 +20,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy to EC2
+      - name: Validate index.html exists
+        run: test -f index.html
+
+      - name: Upload static files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 98.84.6.90
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "index.html,styles.css,assets"
+          target: /var/www/drinkbuuz-dev
+          overwrite: true
+
+      - name: Fix permissions
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: 98.84.6.90
           username: ec2-user
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            set -euo pipefail
+            sudo chown -R nginx:nginx /var/www/drinkbuuz-dev
+            echo "Deploy complete"
 
-            # Setup dev directory
-            sudo mkdir -p /app-dev
-            sudo chown ec2-user:ec2-user /app-dev
-
-            # Clone or update dev branch
-            if [ ! -d /app-dev/.git ]; then
-              git clone --branch dev https://github.com/nadavrajuan/drinkbuuz-landing.git /app-dev
-            else
-              cd /app-dev
-              git fetch origin dev
-              git reset --hard origin/dev
-            fi
-
-            cd /app-dev
-
-            # Write env file from secrets
-            cat > .env <<ENVEOF
-            PIPEDRIVE_API_TOKEN=${{ secrets.PIPEDRIVE_API_TOKEN }}
-            ENVEOF
-
-            # Write dev-specific docker-compose override (port 8001)
-            cat > docker-compose.dev.yml <<'DCEOF'
-            version: "3.9"
-            services:
-              web:
-                build: .
-                ports:
-                  - "127.0.0.1:8001:8000"
-                env_file:
-                  - .env
-                restart: always
-                healthcheck:
-                  test: ["CMD", "curl", "-f", "http://localhost:8000/"]
-                  interval: 30s
-                  timeout: 10s
-                  retries: 3
-            DCEOF
-
-            # Build and start dev container (project name = drinkbuuz-dev)
-            docker compose -f docker-compose.dev.yml -p drinkbuuz-dev up -d --build
-
-            # Quick health check
-            sleep 8
-            curl --fail --silent http://localhost:8001/ > /dev/null && echo "Dev deploy healthy on port 8001"
-
-      - name: Verify deployment
+      - name: Health check
         run: |
-          echo "Deployment triggered. Dev site should be live at http://dev.drinkbuzz.com"
+          sleep 5
+          curl --fail --silent --max-time 20 http://dev.drinkbuuz.com/ > /dev/null && echo "Site is up"
