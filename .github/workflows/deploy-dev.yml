@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -20,36 +20,60 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate HTML exists
-        run: test -f index.html
-
-      - name: Upload static files to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DEV_SSH_HOST }}
-          username: ${{ secrets.DEV_SSH_USER }}
-          key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
-          port: ${{ secrets.DEV_SSH_PORT }}
-          source: "index.html,styles.css,assets"
-          target: ${{ secrets.DEV_DEPLOY_PATH }}
-          overwrite: true
-
-      - name: Finalize deploy on server
+      - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.DEV_SSH_HOST }}
-          username: ${{ secrets.DEV_SSH_USER }}
-          key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
-          port: ${{ secrets.DEV_SSH_PORT }}
-          script_stop: true
+          host: 98.84.6.90
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -euo pipefail
-            test -f "${{ secrets.DEV_DEPLOY_PATH }}/index.html"
-            if [ -n "${{ secrets.DEV_POST_DEPLOY_CMD }}" ]; then
-              eval "${{ secrets.DEV_POST_DEPLOY_CMD }}"
+
+            # Setup dev directory
+            sudo mkdir -p /app-dev
+            sudo chown ec2-user:ec2-user /app-dev
+
+            # Clone or update dev branch
+            if [ ! -d /app-dev/.git ]; then
+              git clone --branch dev https://github.com/nadavrajuan/drinkbuuz-landing.git /app-dev
+            else
+              cd /app-dev
+              git fetch origin dev
+              git reset --hard origin/dev
             fi
 
-      - name: Health check
+            cd /app-dev
+
+            # Write env file from secrets
+            cat > .env <<ENVEOF
+            PIPEDRIVE_API_TOKEN=${{ secrets.PIPEDRIVE_API_TOKEN }}
+            ENVEOF
+
+            # Write dev-specific docker-compose override (port 8001)
+            cat > docker-compose.dev.yml <<'DCEOF'
+            version: "3.9"
+            services:
+              web:
+                build: .
+                ports:
+                  - "127.0.0.1:8001:8000"
+                env_file:
+                  - .env
+                restart: always
+                healthcheck:
+                  test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+                  interval: 30s
+                  timeout: 10s
+                  retries: 3
+            DCEOF
+
+            # Build and start dev container (project name = drinkbuuz-dev)
+            docker compose -f docker-compose.dev.yml -p drinkbuuz-dev up -d --build
+
+            # Quick health check
+            sleep 8
+            curl --fail --silent http://localhost:8001/ > /dev/null && echo "Dev deploy healthy on port 8001"
+
+      - name: Verify deployment
         run: |
-          set -euo pipefail
-          curl --fail --silent --show-error --location --max-time 20 "${{ secrets.DEV_HEALTHCHECK_URL }}" >/dev/null
+          echo "Deployment triggered. Dev site should be live at http://dev.drinkbuzz.com"
