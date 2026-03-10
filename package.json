@@ -1,0 +1,17 @@
+{
+  "name": "drink-buuz-com",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test:visual",
+    "test:visual": "node scripts/visual-check.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "playwright": "^1.58.2"
+  }
+}

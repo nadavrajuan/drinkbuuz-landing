@@ -1,0 +1,55 @@
+name: Deploy Dev to EC2
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: true
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate HTML exists
+        run: test -f index.html
+
+      - name: Upload static files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEV_SSH_HOST }}
+          username: ${{ secrets.DEV_SSH_USER }}
+          key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DEV_SSH_PORT }}
+          source: "index.html,styles.css,assets"
+          target: ${{ secrets.DEV_DEPLOY_PATH }}
+          overwrite: true
+
+      - name: Finalize deploy on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEV_SSH_HOST }}
+          username: ${{ secrets.DEV_SSH_USER }}
+          key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DEV_SSH_PORT }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            test -f "${{ secrets.DEV_DEPLOY_PATH }}/index.html"
+            if [ -n "${{ secrets.DEV_POST_DEPLOY_CMD }}" ]; then
+              eval "${{ secrets.DEV_POST_DEPLOY_CMD }}"
+            fi
+
+      - name: Health check
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --max-time 20 "${{ secrets.DEV_HEALTHCHECK_URL }}" >/dev/null
